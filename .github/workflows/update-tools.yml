@@ -35,7 +35,6 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          mv tmp2 tmp2
           git add tmp2
           git commit -m "Apktool is updated to $VERSION"
           git push
