@@ -13,6 +13,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Add release.json to .gitignore
+        run: |
+          echo "release.json" >> .gitignore
+          git add .gitignore
+          git commit -m "Add release.json to .gitignore"
+          git push
+
       - name: Get Latest Apktool Release
         id: apktool-release
         env:
