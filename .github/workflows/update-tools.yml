@@ -28,7 +28,6 @@ jobs:
 
       - name: Download Apktool Jar as tmp2
         run: |
-          echo "Downloading Apktool from: $JAR_URL"
           curl -L -o tmp2 "$JAR_URL"
 
       - name: Commit Changes
