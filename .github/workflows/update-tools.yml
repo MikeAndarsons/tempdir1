@@ -13,6 +13,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set Git User Identity
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
       - name: Add release.json to .gitignore
         run: |
           echo "release.json" >> .gitignore
@@ -39,8 +44,6 @@ jobs:
 
       - name: Commit Changes
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
           git add tmp2
           git commit -m "Apktool is updated to $VERSION"
           git push
