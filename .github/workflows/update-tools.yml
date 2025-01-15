@@ -15,32 +15,27 @@ jobs:
 
       - name: Get Latest Apktool Release
         id: apktool-release
-        uses: octokit/request-action@v2.0.0
-        with:
-          route: GET /repos/iBotPeaches/Apktool/releases/latest
-          headers: '{"Accept": "application/vnd.github.v3+json"}'
-
-      - name: Extract Release Version
-        id: parse-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(echo '${{ steps.apktool-release.outputs.data }}' | jq -r '.tag_name')
+          API_RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/iBotPeaches/Apktool/releases/latest)
+          echo "$API_RESPONSE" > release.json
+          VERSION=$(jq -r '.tag_name' release.json)
+          JAR_URL=$(jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url' release.json)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "Apktool version: ${VERSION}"
+          echo "JAR_URL=${JAR_URL}" >> $GITHUB_ENV
 
       - name: Download Apktool Jar as tmp2
         run: |
-          # Extract the jar file URL
-          JAR_URL=$(echo '${{ steps.apktool-release.outputs.data }}' | jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url')
-          echo "Jar URL: $JAR_URL"
-
-          # Download the .jar file directly as tmp2
+          echo "Downloading Apktool from: $JAR_URL"
           curl -L -o tmp2 "$JAR_URL"
 
       - name: Commit Changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          mv tmp2 tmp2  # Place tmp2 in the repository root
+          mv tmp2 tmp2
           git add tmp2
           git commit -m "Apktool is updated to $VERSION"
           git push
