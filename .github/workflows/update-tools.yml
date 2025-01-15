@@ -1,0 +1,46 @@
+name: Update Apktool Jar
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 6'
+
+jobs:
+  update-jar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Get Latest Apktool Release
+        id: apktool-release
+        uses: octokit/request-action@v3
+        with:
+          route: GET /repos/iBotPeaches/Apktool/releases/latest
+          headers: '{"Accept": "application/vnd.github.v3+json"}'
+
+      - name: Extract Release Version
+        id: parse-version
+        run: |
+          VERSION=$(echo '${{ steps.apktool-release.outputs.data }}' | jq -r '.tag_name')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Apktool version: ${VERSION}"
+
+      - name: Download Apktool Jar as tmp2
+        run: |
+          # Extract the jar file URL
+          JAR_URL=$(echo '${{ steps.apktool-release.outputs.data }}' | jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url')
+          echo "Jar URL: $JAR_URL"
+
+          # Download the .jar file directly as tmp2
+          curl -L -o tmp2 "$JAR_URL"
+
+      - name: Commit Changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          mv tmp2 tmp2
+          git add tmp2
+          git commit -m "Apktool is updated to $VERSION"
+          git push
